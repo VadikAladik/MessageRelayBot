@@ -1,8 +1,10 @@
-import telebot
-from telebot import types
 import json
 
+import telebot
+from telebot import types
+
 from config import *
+from message_types import *
 
 bot = telebot.TeleBot(bot_token)
 
@@ -36,7 +38,7 @@ def input_message(message):
     kb_for_user.add(button2)
 
     print(f'@{message.from_user.username}({message.from_user.id}) отправил тип сообщения: {message.content_type}')
-    if message.content_type == 'text':  # обработка текста
+    if message.content_type == 'text':  # обработка текстовых сообщений
         print(f'@{message.from_user.username}({message.from_user.id}) написал: {message.text}')
 
         bot.send_message(admin_id, text=f'id этого сообщения: <code>{message.message_id}</code>\n'
@@ -60,32 +62,70 @@ def input_message(message):
                                                   f'Комментарий: <b>{mess_capt}</b>', parse_mode='HTML')
         bot.send_message(message.chat.id, text='✅ Сообщение доставлено администратору', reply_markup=kb_for_user)
 
-    elif message.content_type == 'video':  # обработка видео
-        file_id = message.video.file_id
+    
 
-        if message.caption:
-            mess_capt = message.caption
-        else:
-            mess_capt = ' '
+    elif message.content_type in supported_comment_types:  # обработка типов которые поддерживают комментарии
+        try:
+            mess_capt = message.caption if message.caption else ' '
 
-        print(
-            f'@{message.from_user.username}({message.from_user.id}) отправил видео, комментарий: {message.caption if message.caption else 'без комментария'}')
-        bot.send_video(admin_id, file_id, caption=f'Отправлено @{message.from_user.username}({message.from_user.id})\n'
-                                                  f'Комментарий: <b>{mess_capt}</b>', parse_mode='HTML')
-        bot.send_message(message.chat.id, text='✅ Сообщение доставлено администратору', reply_markup=kb_for_user)
+            if message.content_type in requires_file_id:
+                print('1')
+                file_id = eval(f'message.{message.content_type}.file_id')
 
-    elif message.content_type == 'video_note':  # обработка кружочков
-        file_id = message.video_note.file_id
+                print(
+                    f'@{message.from_user.username}({message.from_user.id}) отправил {supported_comment_types[message.content_type]}, комментарий: {message.caption if message.caption else 'без комментария'}')
+                eval(f'bot.send_{message.content_type}(admin_id, file_id, \
+                       caption=f"Отправлено @{message.from_user.username}({message.from_user.id})\\nКомментарий: <b>{mess_capt}</b>", parse_mode="HTML")')
 
-        print(f'@{message.from_user.username}({message.from_user.id}) отправил кружок')
-        bot.send_message(admin_id, text=f'Отправлено @{message.from_user.username}({message.from_user.id})\n'
-                                        'Сам кружок:')
-        bot.send_video_note(admin_id, file_id)
-        bot.send_message(message.chat.id, text='✅ Сообщение доставлено администратору', reply_markup=kb_for_user)
+
+            else:
+
+                print(
+                    f'@{message.from_user.username}({message.from_user.id}) отправил {supported_comment_types[message.content_type]}, комментарий: {message.caption if message.caption else 'без комментария'}')
+                eval(f'bot.send_{message.content_type}(admin_id, message.chat.id, \
+                                   caption=f"Отправлено @{message.from_user.username}({message.from_user.id})\\nКомментарий: <b>{mess_capt}</b>", parse_mode="HTML")')
+
+            bot.send_message(message.chat.id, text='✅ Сообщение доставлено администратору', reply_markup=kb_for_user)
+
+        except Exception as e:
+            bot.send_message(message.chat.id, text='❌ Произошла ошибка\n'
+                                                   f'❓ {e}')
+            print(f'Произошла ошибка: {e}')
+
+
+
+    elif message.content_type in unsupported_comment_types:  # обработка типов которые не поддерживают комментарии
+        try:
+
+            if message.content_type in requires_file_id:
+
+                file_id = eval(f'message.{message.content_type}.file_id')
+
+                print(
+                    f'@{message.from_user.username}({message.from_user.id}) отправил {unsupported_comment_types[message.content_type]}')
+                eval(
+                    f'bot.send_message(admin_id, text="Отправлено @{message.from_user.username}({message.from_user.id})\\n{unsupported_comment_types[message.content_type]}:")')
+                eval(f'bot.send_{message.content_type}(admin_id, file_id)')
+
+
+            else:
+                print(
+                    f'@{message.from_user.username}({message.from_user.id}) отправил {unsupported_comment_types[message.content_type]}')
+                eval(
+                    f'bot.send_message(admin_id, text="Отправлено @{message.from_user.username}({message.from_user.id})\\n{unsupported_comment_types[message.content_type]}:")')
+                eval(f'bot.send_{message.content_type}(admin_id, message_id)')
+
+            bot.send_message(message.chat.id, text='✅ Сообщение доставлено администратору', reply_markup=kb_for_user)
+
+        except Exception as e:
+            bot.send_message(message.chat.id, text='❌ Произошла ошибка\n'
+                                                   f'❓ {e}')
+            print(f'Произошла ошибка: {e}')
 
     else:
         print(
             f'@{message.from_user.username}({message.from_user.id}) отправил {message.content_type}, данный тип не поддерживается')
+        bot.send_message(message.chat.id, text=f'❌ Введенный тип сообщений({message.content_type}) не поддерживается')
 
 
 @bot.callback_query_handler(func=lambda call: True)
