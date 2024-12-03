@@ -57,12 +57,12 @@ def input_message(message):
             mess_capt = ' '
 
         print(
-            f'@{message.from_user.username}({message.from_user.id}) отправил фото, комментарий: {message.caption if message.caption else 'без комментария'}')
+            f'@{message.from_user.username}({message.from_user.id}) отправил фото, комментарий: {message.caption if message.caption else "без комментария"}')
         bot.send_photo(admin_id, file_id, caption=f'Отправлено @{message.from_user.username}({message.from_user.id})\n'
                                                   f'Комментарий: <b>{mess_capt}</b>', parse_mode='HTML')
         bot.send_message(message.chat.id, text='✅ Сообщение доставлено администратору', reply_markup=kb_for_user)
 
-    
+
 
     elif message.content_type in supported_comment_types:  # обработка типов которые поддерживают комментарии
         try:
@@ -73,7 +73,7 @@ def input_message(message):
                 file_id = eval(f'message.{message.content_type}.file_id')
 
                 print(
-                    f'@{message.from_user.username}({message.from_user.id}) отправил {supported_comment_types[message.content_type]}, комментарий: {message.caption if message.caption else 'без комментария'}')
+                    f'@{message.from_user.username}({message.from_user.id}) отправил {supported_comment_types[message.content_type]}, комментарий: {message.caption if message.caption else "без комментария"}')
                 eval(f'bot.send_{message.content_type}(admin_id, file_id, \
                        caption=f"Отправлено @{message.from_user.username}({message.from_user.id})\\nКомментарий: <b>{mess_capt}</b>", parse_mode="HTML")')
 
@@ -81,7 +81,7 @@ def input_message(message):
             else:
 
                 print(
-                    f'@{message.from_user.username}({message.from_user.id}) отправил {supported_comment_types[message.content_type]}, комментарий: {message.caption if message.caption else 'без комментария'}')
+                    f'@{message.from_user.username}({message.from_user.id}) отправил {supported_comment_types[message.content_type]}, комментарий: {message.caption if message.caption else "без комментария"}')
                 eval(f'bot.send_{message.content_type}(admin_id, message.chat.id, \
                                    caption=f"Отправлено @{message.from_user.username}({message.from_user.id})\\nКомментарий: <b>{mess_capt}</b>", parse_mode="HTML")')
 
