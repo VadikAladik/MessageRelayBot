@@ -142,6 +142,8 @@ def callback_inline(call):
         text = bot.send_message(admin_id, text='📝 Введите сообщение для ответа')
         bot.register_next_step_handler(text, send_reply, original_chat_id)
 
+    bot.delete_message(call.message.chat.id, call.message.message_id)
+
 
 def send_reply(message, original_chat_id):
     reply_text = message.text
@@ -164,4 +166,4 @@ def send_reply(message, original_chat_id):
 
 
 if __name__ == "__main__":
-    bot.polling()
+    bot.infinity_polling(timeout=10, long_polling_timeout=5)
